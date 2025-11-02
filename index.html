@@ -168,7 +168,22 @@ let DATA={"Flour":120,
   "Eggs": 243,
   "Egg Whites": 240,
   "Sun-Dried Tomatoes": 54,
-  "Sun-Dried Tomatoes (Oil-Packed, Drained)": 80,};
+  "Sun-Dried Tomatoes (Oil-Packed, Drained)": 80,
+  "Feta Cheese": 150,
+  "Cheddar Cheese": 113,
+  "Mozzarella Cheese": 112,
+  "Parmesan Cheese (Grated)": 100,
+  "Parmesan Cheese (Shredded)": 80,
+  "Romano Cheese": 95,
+  "Swiss Cheese": 108,
+  "Monterey Jack Cheese": 113,
+  "Provolone Cheese": 110,
+  "Cream Cheese": 227,
+  "Ricotta Cheese": 246,
+  "Cottage Cheese": 210,
+  "Goat Cheese": 120,
+  "Blue Cheese": 135,
+  "Brie Cheese": 120,};
 const ing=document.getElementById('ing'),sug=document.getElementById('sug'),amt=document.getElementById('amt'),unit=document.getElementById('unit'),out=document.getElementById('out'),notes=document.getElementById('notes'),convertBtn=document.getElementById('convertBtn');
 Object.keys(U).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;unit.appendChild(o)});
 const ITEMS=Object.keys(DATA).sort((a,b)=>a.localeCompare(b));
