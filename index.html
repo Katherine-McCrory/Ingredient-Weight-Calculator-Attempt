@@ -183,7 +183,9 @@ let DATA={"Flour":120,
   "Cottage Cheese": 210,
   "Goat Cheese": 120,
   "Blue Cheese": 135,
-  "Brie Cheese": 120,};
+  "Brie Cheese": 120,
+  "Basil (Fresh)": 21,
+  "Basil (Dried)": 48,};
 const ing=document.getElementById('ing'),sug=document.getElementById('sug'),amt=document.getElementById('amt'),unit=document.getElementById('unit'),out=document.getElementById('out'),notes=document.getElementById('notes'),convertBtn=document.getElementById('convertBtn');
 Object.keys(U).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;unit.appendChild(o)});
 const ITEMS=Object.keys(DATA).sort((a,b)=>a.localeCompare(b));
