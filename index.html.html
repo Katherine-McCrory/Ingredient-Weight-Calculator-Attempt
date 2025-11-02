@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ingredient → grams converter</title>
+<style>
+  html,body{margin:0;font:16px system-ui,Segoe UI,Roboto,Arial;
+    background:radial-gradient(900px 600px at 10% 0%,#0b1227 0,#0a1325 30%,#0f172a 70%);
+    color:#e5e7eb;display:flex;justify-content:center;align-items:center;
+    padding:10px;min-height:100vh;box-sizing:border-box;text-align:center}
+  .wrap{width:100%;max-width:520px;margin:0 auto}
+  .subtitle{margin:0 0 16px;color:#94a3b8;font-size:16px;text-align:center}
+  .card{background:linear-gradient(180deg,#0b1325 0,#111827 60%);border:1px solid rgba(255,255,255,.06);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.35);padding:18px;width:100%;text-align:center}
+  .grid{display:grid;gap:12px;grid-template-columns:1fr}
+  @media(min-width:600px){.grid{grid-template-columns:1fr 1fr 1fr}}
+  label{font-size:12px;color:#94a3b8;display:block;margin:0 0 4px;text-align:left}
+  input,select,button{font:inherit;color:#e5e7eb;background:rgba(2,6,23,.6);border:1px solid rgba(255,255,255,.08);outline:0;border-radius:12px;padding:10px;width:100%;box-sizing:border-box;text-align:center}
+  input:focus,select:focus{border-color:#60a5fa;box-shadow:0 0 0 3px rgba(96,165,250,.25)}
+  .controls{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
+  .btn{cursor:pointer;font-weight:700;padding:10px 14px}
+  .result{margin-top:14px;padding:14px;border-radius:14px;background:rgba(2,6,23,.55);border:1px solid rgba(255,255,255,.06)}
+  .muted{color:#94a3b8;font-size:12px;text-align:center}
+  .mono{font-variant-numeric:tabular-nums;text-align:center}
+</style>
+<body>
+  <div class="wrap">
+    <p class="subtitle">Convert any ingredient measurement to grams.</p>
+
+    <div class="card">
+      <div class="grid" aria-label="converter">
+        <div>
+          <label for="ing">Ingredient</label>
+          <input id="ing" placeholder="Type to search…" list="inglist" autocomplete="off">
+          <datalist id="inglist"></datalist>
+        </div>
+        <div>
+          <label for="amt">Amount</label>
+          <input id="amt" placeholder="e.g. 1 1/2 or ¾"/>
+        </div>
+        <div>
+          <label for="unit">Unit</label>
+          <select id="unit"></select>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="muted">Grams per cup data</div>
+        <button class="btn" id="convertBtn">Convert</button>
+        <div class="muted right">Output in grams</div>
+      </div>
+
+      <div class="result">
+        <div class="mono" id="out" style="font-size:clamp(22px,3vw,28px);font-weight:800">—</div>
+        <div class="muted" id="notes">Enter ingredient, amount, and unit to see result.</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const U={tsp:{k:'vol',toCups:1/48},tbsp:{k:'vol',toCups:1/16},floz:{k:'vol',toCups:1/8},cup:{k:'vol',toCups:1},pint:{k:'vol',toCups:2},quart:{k:'vol',toCups:4},gallon:{k:'vol',toCups:16},ml:{k:'vol',toCups:(1/236.588)},l:{k:'vol',toCups:(1000/236.588)},g:{k:'wt',toG:v=>v},kg:{k:'wt',toG:v=>v*1000},oz:{k:'wt',toG:v=>v*28.349523125},lb:{k:'wt',toG:v=>v*453.59237}};
+const V={'¼':.25,'½':.5,'¾':.75,'⅐':1/7,'⅑':1/9,'⅒':.1,'⅓':1/3,'⅔':2/3,'⅕':.2,'⅖':.4,'⅗':.6,'⅘':.8,'⅙':1/6,'⅚':5/6,'⅛':.125,'⅜':.375,'⅝':.625,'⅞':.875};
+function parseAmount(r){if(!r)return NaN;let s=r.trim();for(const k in V)if(s.includes(k))s=s.replaceAll(k,' '+V[k]);let t=0;for(const p of s.split(/\s+/)){if(/^[-+]?\d+(?:[.,]\d+)?$/.test(p))t+=parseFloat(p.replace(',', '.'));else if(/^[-+]?\d+\s*\/\s*\d+$/.test(p)){const[a,b]=p.split('/').map(Number);if(b)t+=a/b}else return NaN;}return t;}
+
+let DATA={
+  "Flour":120,"Sugar":198,"Brown Sugar":213,"Powdered Sugar":113,"Cocoa Powder":84,
+  "Cornmeal":138,"Rice Flour":142,"Tapioca Starch":113,"Potato Starch":152,
+  "Butter":227,"Oil":198,"Shortening":184,"Lard":227,"Ghee":176,
+  "Peanut Butter":270,"Tahini":256,
+  "Milk":227,"Buttermilk":227,"Cream":227,"Yogurt":227,"Sour Cream":227,
+  "Cream Cheese":227,"Evaporated Milk":227,"Sweetened Condensed Milk":312,"Cheese (grated)":113,
+  "Oats":85,"Breadcrumbs":112,"Panko":50,"Rice (cooked)":170,"Quinoa (cooked)":184,
+  "Almonds":142,"Walnuts":113,"Pecans":105,"Hazelnuts":142,"Cashews":113,
+  "Peanuts":142,"Pistachios":120,"Macadamia Nuts":149,"Sunflower Seeds":140,
+  "Sesame Seeds":142,"Flaxseed":140,"Chia Seeds":148,"Pumpkin Seeds":160,"Pine Nuts":142,
+  "Chocolate Chips":170,"Chocolate":170,
+  "Bell Pepper":149,"Onion":160,"Tomato":180,"Celery":101,"Carrot":99,
+  "Cucumber":104,"Spinach":30,"Kale":67,"Broccoli":91,"Cauliflower":107,
+  "Mushrooms":72,"Potato":210,"Sweet Potato":240,"Zucchini":140,"Garlic":136,
+  "Apple":110,"Banana":227,"Berries":155,"Strawberry":167,"Raspberry":140,
+  "Pineapple":256,"Raisins":156,"Dates":149,
+  "Water":227,"Orange Juice":248,"Lemon Juice":224,
+  "Black Pepper":142,"Cinnamon":132,"Cumin":96,"Paprika":92,
+  "Salt":288,"Baking Powder":192,"Baking Soda":288
+};
+
+const ing=document.getElementById('ing'),inglist=document.getElementById('inglist'),amt=document.getElementById('amt'),unit=document.getElementById('unit'),out=document.getElementById('out'),notes=document.getElementById('notes'),convertBtn=document.getElementById('convertBtn');
+
+Object.keys(DATA).sort().forEach(k=>{const o=document.createElement('option');o.value=k;inglist.appendChild(o)});
+Object.keys(U).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;unit.appendChild(o)});
+unit.value='cup';ing.value='Flour';
+
+function findIngredient(name){ if(DATA[name]) return name; const low=name.toLowerCase(); const hit=Object.keys(DATA).find(k=>k.toLowerCase()===low)||Object.keys(DATA).find(k=>k.toLowerCase().startsWith(low)); return hit||''; }
+
+function conv(){let n=findIngredient(ing.value||'');const a=parseAmount(amt.value),u=unit.value;if(!n||!isFinite(a)){out.textContent='—';notes.textContent='Pick an ingredient and enter a valid amount.';return;}const meta=U[u];let g;if(meta.k==='wt'){g=meta.toG(a);}else{const cups=a*meta.toCups;g=cups*DATA[n];}out.textContent=`${Math.round(g)} g`;notes.textContent=`${a} ${u} ${n} ≈ ${Math.round(g)} g`}
+convertBtn.onclick=conv;amt.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();conv();}});
+</script>
+</body>
+</html>
