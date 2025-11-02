@@ -2,34 +2,51 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ingredient → grams converter (embed-optimized)</title>
+<title>Ingredient → grams (with item-count tab)</title>
 <style>
-  /* Embed-optimized: no vertical centering, no overflow cutoffs, tight outer spacing */
+  /* Embed-optimized: snug layout, Notion-friendly */
   *,*::before,*::after{box-sizing:border-box}
   html,body{
     margin:0;padding:0;
     font:16px system-ui,Segoe UI,Roboto,Arial;
     background:#0f172a;color:#e5e7eb;
     height:auto;min-height:0;
+    text-align:center;
   }
   .wrap{width:100%;max-width:560px;margin:8px auto;padding:0 8px}
-  .subtitle{margin:6px 0 8px;color:#94a3b8;font-size:16px;text-align:center}
+  .subtitle{margin:6px 0 8px;color:#94a3b8;font-size:16px}
+
   .card{background:linear-gradient(180deg,#0b1325 0,#111827 60%);
     border:1px solid rgba(255,255,255,.06);border-radius:18px;
     box-shadow:0 4px 10px rgba(0,0,0,.35);padding:16px;width:100%;
     text-align:center}
+
+  /* Tabs */
+  .tabs{display:flex;gap:8px;justify-content:center;margin-bottom:12px;flex-wrap:wrap}
+  .tab-btn{
+    border:1px solid rgba(255,255,255,.08);
+    background:rgba(2,6,23,.6);
+    color:#e5e7eb;
+    padding:8px 12px;border-radius:12px;cursor:pointer;font-weight:600;
+  }
+  .tab-btn[aria-selected="true"]{border-color:#60a5fa;box-shadow:0 0 0 3px rgba(96,165,250,.25) inset}
+  .panel{display:none}
+  .panel.active{display:block}
+
   .grid{display:grid;gap:12px;grid-template-columns:1fr}
   @media(min-width:600px){.grid{grid-template-columns:1fr 1fr 1fr}}
   label{font-size:12px;color:#94a3b8;display:block;margin:0 0 4px;text-align:left}
-  input,select,button{font:inherit;color:#e5e7eb;background:rgba(2,6,23,.6);
+  input,select,button{
+    font:inherit;color:#e5e7eb;background:rgba(2,6,23,.6);
     border:1px solid rgba(255,255,255,.08);outline:0;border-radius:12px;
-    padding:10px;width:100%;text-align:center}
+    padding:10px;width:100%;text-align:center
+  }
   input:focus,select:focus{border-color:#60a5fa;box-shadow:0 0 0 3px rgba(96,165,250,.25)}
   .controls{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
   .btn{cursor:pointer;font-weight:700;padding:10px 14px}
   .result{margin-top:14px;padding:14px;border-radius:14px;background:rgba(2,6,23,.55);border:1px solid rgba(255,255,255,.06)}
-  .muted{color:#94a3b8;font-size:12px;text-align:center}
-  .mono{font-variant-numeric:tabular-nums;text-align:center}
+  .muted{color:#94a3b8;font-size:12px}
+  .mono{font-variant-numeric:tabular-nums}
   .field{position:relative}
   .sug{position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#0f172a;border:1px solid rgba(255,255,255,.1);border-radius:12px;
     box-shadow:0 10px 20px rgba(0,0,0,.35);max-height:240px;overflow:auto;display:none;z-index:20;text-align:left}
@@ -39,43 +56,117 @@
 </style>
 <body>
   <div class="wrap">
-    <p class="subtitle">Convert any ingredient measurement to grams.</p>
+    <p class="subtitle">Convert any ingredient measurement to grams — or by item count.</p>
     <div class="card">
-      <div class="grid" aria-label="converter">
-        <div class="field">
-          <label for="ing">Ingredient</label>
-          <input id="ing" class="ing-input" placeholder="Search or choose…" autocomplete="off" role="combobox" aria-expanded="false" aria-owns="sug" aria-autocomplete="list">
-          <div id="sug" class="sug" role="listbox" aria-label="Ingredient suggestions"></div>
-        </div>
-        <div>
-          <label for="amt">Amount</label>
-          <input id="amt" placeholder="e.g. 1 1/2 or ¾"/>
-        </div>
-        <div>
-          <label for="unit">Unit</label>
-          <select id="unit">
-            <option value="" selected disabled>Select…</option>
-          </select>
-        </div>
+      <!-- Tab buttons -->
+      <div class="tabs" role="tablist" aria-label="converter modes">
+        <button class="tab-btn" role="tab" id="tab-amount" aria-controls="panel-amount" aria-selected="true">By Volume / Unit</button>
+        <button class="tab-btn" role="tab" id="tab-item" aria-controls="panel-item" aria-selected="false">By Item Count</button>
       </div>
 
-      <div class="controls">
-        <div class="muted">Grams per cup data</div>
-        <button class="btn" id="convertBtn">Convert</button>
-        <div class="muted right">Output in grams</div>
-      </div>
+      <!-- Panel 1: Ingredient + amount + unit -> grams -->
+      <section id="panel-amount" class="panel active" role="tabpanel" aria-labelledby="tab-amount">
+        <div class="grid" aria-label="unit converter">
+          <div class="field">
+            <label for="ing">Ingredient</label>
+            <input id="ing" class="ing-input" placeholder="Search or choose…" autocomplete="off" role="combobox" aria-expanded="false" aria-owns="sug" aria-autocomplete="list">
+            <div id="sug" class="sug" role="listbox" aria-label="Ingredient suggestions"></div>
+          </div>
+          <div>
+            <label for="amt">Amount</label>
+            <input id="amt" placeholder="e.g. 1 1/2 or ¾"/>
+          </div>
+          <div>
+            <label for="unit">Unit</label>
+            <select id="unit">
+              <option value="" selected disabled>Select…</option>
+            </select>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="muted">Grams per cup data</div>
+          <button class="btn" id="convertBtn">Convert</button>
+          <div class="muted right">Output in grams</div>
+        </div>
+        <div class="result">
+          <div class="mono" id="out" style="font-size:clamp(22px,3vw,28px);font-weight:800">—</div>
+          <div class="muted" id="notes">Enter ingredient, amount, and unit to see result.</div>
+        </div>
+      </section>
 
-      <div class="result">
-        <div class="mono" id="out" style="font-size:clamp(22px,3vw,28px);font-weight:800">—</div>
-        <div class="muted" id="notes">Enter ingredient, amount, and unit to see result.</div>
-      </div>
+      <!-- Panel 2: Item + quantity -> grams -->
+      <section id="panel-item" class="panel" role="tabpanel" aria-labelledby="tab-item" hidden>
+        <div class="grid" aria-label="item converter">
+          <div class="field">
+            <label for="itemIng">Item</label>
+            <input id="itemIng" class="ing-input" placeholder="Search items (e.g., chicken breast)" autocomplete="off" role="combobox" aria-expanded="false" aria-owns="sug2" aria-autocomplete="list">
+            <div id="sug2" class="sug" role="listbox" aria-label="Item suggestions"></div>
+          </div>
+          <div>
+            <label for="qty">Quantity</label>
+            <input id="qty" inputmode="decimal" placeholder="e.g. 2 or 0.5"/>
+          </div>
+          <div>
+            <label for="unitG">Result</label>
+            <input id="unitG" value="grams" disabled>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="muted">Average weight per item</div>
+          <button class="btn" id="itemConvertBtn">Convert</button>
+          <div class="muted">Output in grams</div>
+        </div>
+        <div class="result">
+          <div class="mono" id="itemOut" style="font-size:clamp(22px,3vw,28px);font-weight:800">—</div>
+          <div class="muted" id="itemNotes">Pick an item and enter a quantity.</div>
+        </div>
+      </section>
     </div>
   </div>
 
 <script>
-const U={tsp:{k:'vol',toCups:1/48},tbsp:{k:'vol',toCups:1/16},floz:{k:'vol',toCups:1/8},cup:{k:'vol',toCups:1},pint:{k:'vol',toCups:2},quart:{k:'vol',toCups:4},gallon:{k:'vol',toCups:16},ml:{k:'vol',toCups:(1/236.588)},l:{k:'vol',toCups:(1000/236.588)},g:{k:'wt',toG:v=>v},kg:{k:'wt',toG:v=>v*1000},oz:{k:'wt',toG:v=>v*28.349523125},lb:{k:'wt',toG:v=>v*453.59237}};
+/* ---------- Shared helpers ---------- */
 const V={'¼':.25,'½':.5,'¾':.75,'⅐':1/7,'⅑':1/9,'⅒':.1,'⅓':1/3,'⅔':2/3,'⅕':.2,'⅖':.4,'⅗':.6,'⅘':.8,'⅙':1/6,'⅚':5/6,'⅛':.125,'⅜':.375,'⅝':.625,'⅞':.875};
-function parseAmount(r){if(!r)return NaN;let s=r.trim();for(const k in V)if(s.includes(k))s=s.replaceAll(k,' '+V[k]);let t=0;for(const p of s.split(/\s+/)){if(/^[-+]?\d+(?:[.,]\d+)?$/.test(p))t+=parseFloat(p.replace(',', '.'));else if(/^[-+]?\d+\s*\/\s*\d+$/.test(p)){const[a,b]=p.split('/').map(Number);if(b)t+=a/b}else return NaN;}return t;}
+function parseAmount(r){
+  if(!r) return NaN;
+  let s=r.trim();
+  for(const k in V) if(s.includes(k)) s=s.replaceAll(k,' '+V[k]);
+  let t=0;
+  for(const p of s.split(/\s+/)){
+    if(/^[-+]?\d+(?:[.,]\d+)?$/.test(p)) t+=parseFloat(p.replace(',', '.'));
+    else if(/^[-+]?\d+\s*\/\s*\d+$/.test(p)){const[a,b]=p.split('/').map(Number); if(b) t+=a/b;}
+    else return NaN;
+  }
+  return t;
+}
+
+/* ---------- Tab logic ---------- */
+const tabAmount=document.getElementById('tab-amount');
+const tabItem=document.getElementById('tab-item');
+const panelAmount=document.getElementById('panel-amount');
+const panelItem=document.getElementById('panel-item');
+
+function activateTab(which){
+  const isAmount=which==='amount';
+  tabAmount.setAttribute('aria-selected', isAmount);
+  tabItem.setAttribute('aria-selected', !isAmount);
+  panelAmount.classList.toggle('active', isAmount);
+  panelItem.classList.toggle('active', !isAmount);
+  panelAmount.hidden = !isAmount;
+  panelItem.hidden = isAmount;
+}
+tabAmount.addEventListener('click',()=>activateTab('amount'));
+tabItem.addEventListener('click',()=>activateTab('item'));
+
+/* ---------- Panel 1: Ingredient + unit ---------- */
+const U={tsp:{k:'vol',toCups:1/48},tbsp:{k:'vol',toCups:1/16},floz:{k:'vol',toCups:1/8},cup:{k:'vol',toCups:1},pint:{k:'vol',toCups:2},quart:{k:'vol',toCups:4},gallon:{k:'vol',toCups:16},ml:{k:'vol',toCups:(1/236.588)},l:{k:'vol',toCups:(1000/236.588)},g:{k:'wt',toG:v=>v},kg:{k:'wt',toG:v=>v*1000},oz:{k:'wt',toG:v=>v*28.349523125},lb:{k:'wt',toG:v=>v*453.59237}};
+const ing=document.getElementById('ing'),sug=document.getElementById('sug'),amt=document.getElementById('amt'),unit=document.getElementById('unit'),out=document.getElementById('out'),notes=document.getElementById('notes'),convertBtn=document.getElementById('convertBtn');
+
+Object.keys(U).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;unit.appendChild(o)});
+
+/* === Paste ingredient data here ===
+   IMPORTANT: no trailing comma after the last entry!
+*/
 let DATA={"Flour":120,
   "Sugar":198,
   "Brown Sugar":213,
@@ -250,20 +341,152 @@ let DATA={"Flour":120,
   "Vegetable Broth": 240,
   "Bone Broth": 242,
   "Fish Stock": 238
-};
-const ing=document.getElementById('ing'),sug=document.getElementById('sug'),amt=document.getElementById('amt'),unit=document.getElementById('unit'),out=document.getElementById('out'),notes=document.getElementById('notes'),convertBtn=document.getElementById('convertBtn');
-Object.keys(U).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;unit.appendChild(o)});
+}; // ⬅ keep this closing brace+semicolon
+
 const ITEMS=Object.keys(DATA).sort((a,b)=>a.localeCompare(b));
-function renderList(q=''){sug.innerHTML='';const needle=q.trim().toLowerCase();let shown=0;for(const name of ITEMS){if(needle && !name.toLowerCase().includes(needle)) continue;const d=document.createElement('div');d.className='item';d.textContent=name;d.onclick=()=>{ing.value=name;hideList();};sug.appendChild(d);shown++;if(shown>=200) break;}sug.classList.toggle('show',shown>0);ing.setAttribute('aria-expanded',shown>0)}
+function renderList(q=''){
+  sug.innerHTML='';
+  const needle=q.trim().toLowerCase();
+  let shown=0;
+  for(const name of ITEMS){
+    if(needle && !name.toLowerCase().includes(needle)) continue;
+    const d=document.createElement('div');
+    d.className='item';
+    d.textContent=name;
+    d.onclick=()=>{ing.value=name;hideList();};
+    sug.appendChild(d);
+    shown++;
+    if(shown>=200) break;
+  }
+  sug.classList.toggle('show',shown>0);
+  ing.setAttribute('aria-expanded',shown>0)
+}
 function showList(){renderList(ing.value);}
 function hideList(){sug.classList.remove('show');ing.setAttribute('aria-expanded','false')}
 ing.addEventListener('input',()=>showList());
 ing.addEventListener('focus',()=>showList());
 ing.addEventListener('blur',()=>setTimeout(hideList,150));
-function findIngredient(name){if(DATA[name])return name;const low=name.toLowerCase();const hit=ITEMS.find(k=>k.toLowerCase()===low)||ITEMS.find(k=>k.toLowerCase().startsWith(low));return hit||'';}
+
+function findIngredient(name){
+  if(DATA[name]) return name;
+  const low=name.toLowerCase();
+  const hit=ITEMS.find(k=>k.toLowerCase()===low)||ITEMS.find(k=>k.toLowerCase().startsWith(low));
+  return hit||'';
+}
 function parseUnit(){return unit.value||''}
-function conv(){let n=findIngredient(ing.value||'');const a=parseAmount(amt.value),u=parseUnit();if(!n||!u||!isFinite(a)){out.textContent='—';notes.textContent='Pick an ingredient, a unit, and enter a valid amount.';return;}const meta=U[u];let g;if(meta.k==='wt'){g=meta.toG(a);}else{const cups=a*meta.toCups;g=cups*DATA[n];}out.textContent=`${Math.round(g)} g`;notes.textContent=`${a} ${u} ${n} ≈ ${Math.round(g)} g`}
-convertBtn.onclick=conv;amt.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();conv();}});
+function conv(){
+  let n=findIngredient(ing.value||'');
+  const a=parseAmount(amt.value),u=parseUnit();
+  if(!n||!u||!isFinite(a)){
+    out.textContent='—';
+    notes.textContent='Pick an ingredient, a unit, and enter a valid amount.';
+    return;
+  }
+  const meta=U[u];
+  let g;
+  if(meta.k==='wt'){ g=meta.toG(a); }
+  else { const cups=a*meta.toCups; g=cups*DATA[n]; }
+  out.textContent=`${Math.round(g)} g`;
+  notes.textContent=`${a} ${u} ${n} ≈ ${Math.round(g)} g`;
+}
+convertBtn.onclick=conv;
+amt.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();conv();}});
+
+/* ---------- Panel 2: Item + quantity ---------- */
+const itemIng=document.getElementById('itemIng'),sug2=document.getElementById('sug2'),qty=document.getElementById('qty'),itemOut=document.getElementById('itemOut'),itemNotes=document.getElementById('itemNotes'),itemConvertBtn=document.getElementById('itemConvertBtn');
+
+/* Per-item weights (grams per 1 item) — expand as you like */
+const ITEM_WEIGHTS = {
+  "Chicken Breast": 170,
+  "Chicken Thigh": 110,
+  "Chicken Drumstick": 90,
+  "Chicken Wing": 45,
+  "Beef Steak": 225,
+  "Ground Beef Patty": 113,
+  "Pork Chop": 180,
+  "Salmon Fillet": 200,
+  "Shrimp (Large)": 15,
+  "Egg": 50,
+  "Egg White": 33,
+  "Egg Yolk": 17,
+  "Almond": 1.2,
+  "Walnut Half": 2.5,
+  "Pecan Half": 2.6,
+  "Cashew": 1.5,
+  "Hazelnut": 1.2,
+  "Peanut": 0.9,
+  "Macadamia Nut": 2.6,
+  "Brazil Nut": 5,
+  "Olive (Pitted)": 3,
+  "Cherry Tomato": 17,
+  "Tomato (Medium)": 120,
+  "Potato (Medium)": 213,
+  "Carrot (Medium)": 61,
+  "Celery Stalk": 40,
+  "Garlic Clove": 3,
+  "Onion (Medium)": 170,
+  "Apple (Medium)": 182,
+  "Banana (Medium)": 118,
+  "Lemon": 65,
+  "Lime": 67,
+  "Zucchini (Medium)": 196,
+  "Bell Pepper (Medium)": 120,
+  "Broccoli Floret": 9,
+  "Mushroom (Button)": 18,
+  "Strawberry (Medium)": 12,
+  "Raspberry": 4,
+  "Blueberry": 1.4,
+  "Grape": 5,
+  "Slice of Cheese": 28,
+  "Basil Leaf": 0.4,
+  "Parsley Sprig": 0.8,
+  "Mint Leaf": 0.3
+};
+
+const ITEM_NAMES = Object.keys(ITEM_WEIGHTS).sort((a,b)=>a.localeCompare(b));
+function renderList2(q=''){
+  sug2.innerHTML='';
+  const needle=q.trim().toLowerCase();
+  let shown=0;
+  for(const name of ITEM_NAMES){
+    if(needle && !name.toLowerCase().includes(needle)) continue;
+    const d=document.createElement('div');
+    d.className='item';
+    d.textContent=name;
+    d.onclick=()=>{itemIng.value=name;hideList2();};
+    sug2.appendChild(d);
+    shown++;
+    if(shown>=200) break;
+  }
+  sug2.classList.toggle('show',shown>0);
+  itemIng.setAttribute('aria-expanded',shown>0)
+}
+function showList2(){renderList2(itemIng.value);}
+function hideList2(){sug2.classList.remove('show');itemIng.setAttribute('aria-expanded','false')}
+itemIng.addEventListener('input',()=>showList2());
+itemIng.addEventListener('focus',()=>showList2());
+itemIng.addEventListener('blur',()=>setTimeout(hideList2,150));
+
+function findItem(name){
+  if(ITEM_WEIGHTS[name]) return name;
+  const low=name.toLowerCase();
+  const hit=ITEM_NAMES.find(k=>k.toLowerCase()===low)||ITEM_NAMES.find(k=>k.toLowerCase().startsWith(low));
+  return hit||'';
+}
+function convItem(){
+  let n=findItem(itemIng.value||'');
+  const q=parseFloat(String(qty.value).replace(',','.'));
+  if(!n||!isFinite(q)){
+    itemOut.textContent='—';
+    itemNotes.textContent='Pick an item and enter a valid quantity.';
+    return;
+  }
+  const grams = Math.round(ITEM_WEIGHTS[n] * q);
+  itemOut.textContent = `${grams} g`;
+  itemNotes.textContent = `${q} × ${n} ≈ ${grams} g`;
+}
+itemConvertBtn.onclick=convItem;
+qty.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();convItem();}});
 </script>
 </body>
 </html>
