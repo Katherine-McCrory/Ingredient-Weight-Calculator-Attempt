@@ -185,7 +185,21 @@ let DATA={"Flour":120,
   "Blue Cheese": 135,
   "Brie Cheese": 120,
   "Basil (Fresh)": 21,
-  "Basil (Dried)": 48,};
+  "Basil (Dried)": 48,
+  "Parsley (Fresh)": 60,
+  "Parsley (Dried)": 50,
+  "Cilantro (Fresh)": 16,
+  "Cilantro (Dried)": 40,
+  "Mint (Fresh)": 25,
+  "Mint (Dried)": 30,
+  "Dill (Fresh)": 8,
+  "Dill (Dried)": 40,
+  "Rosemary (Fresh)": 21,
+  "Rosemary (Dried)": 40,
+  "Thyme (Fresh)": 43,
+  "Thyme (Dried)": 48,
+  "Oregano (Fresh)":
+};
 const ing=document.getElementById('ing'),sug=document.getElementById('sug'),amt=document.getElementById('amt'),unit=document.getElementById('unit'),out=document.getElementById('out'),notes=document.getElementById('notes'),convertBtn=document.getElementById('convertBtn');
 Object.keys(U).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;unit.appendChild(o)});
 const ITEMS=Object.keys(DATA).sort((a,b)=>a.localeCompare(b));
