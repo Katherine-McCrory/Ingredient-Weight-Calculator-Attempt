@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ingredient → grams (King Arthur chart)</title>
+<style>
+  :root{--bg:#0f172a;--card:#111827;--muted:#94a3b8;--text:#e5e7eb;--ring:#60a5fa}
+  html,body{height:100%}body{margin:0;font:16px system-ui,Segoe UI,Roboto,Arial;background:radial-gradient(900px 600px at 10% 0%,#0b1227 0,#0a1325 30%,var(--bg) 70%);color:var(--text);display:grid;place-items:center;padding:20px}
+  .wrap{width:100%;max-width:920px}
+  .title{font-weight:800;font-size:clamp(18px,2.5vw,28px);margin:0 0 6px}
+  .subtitle{margin:0 0 16px;color:var(--muted);font-size:14px}
+  .card{background:linear-gradient(180deg,#0b1325 0,var(--card) 60%);border:1px solid rgba(255,255,255,.06);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.35);padding:18px}
+  .grid{display:grid;gap:12px;grid-template-columns:1fr}
+  @media(min-width:760px){.grid{grid-template-columns:1.1fr .9fr .9fr}}
+  label{font-size:12px;color:var(--muted);display:block;margin:0 0 4px}
+  input,select,button,textarea{font:inherit;color:var(--text);background:rgba(2,6,23,.6);border:1px solid rgba(255,255,255,.08);outline:0;border-radius:12px;padding:10px}
+  input:focus,select:focus,textarea:focus{border-color:var(--ring);box-shadow:0 0 0 3px rgba(96,165,250,.25)}
+  .controls{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:end;margin-top:12px}
+  .btn{cursor:pointer;font-weight:700}
+  .result{margin-top:14px;padding:14px;border-radius:14px;background:rgba(2,6,23,.55);border:1px solid rgba(255,255,255,.06)}
+  .muted{color:var(--muted);font-size:12px}
+  .mono{font-variant-numeric:tabular-nums}
+</style>
+<body>
+  <div class="wrap">
+    <h1 class="title">Ingredient → grams converter</h1>
+    <p class="subtitle">Convert any ingredient measurement to grams using data from King Arthur Baking’s chart.</p>
+
+    <div class="card">
+      <div class="grid" aria-label="converter">
+        <div>
+          <label for="ing">Ingredient</label>
+          <input id="ingSearch" placeholder="Type to search…" list="inglist">
+          <datalist id="inglist"></datalist>
+          <select id="ingSelect" aria-label="Ingredient list"></select>
+        </div>
+        <div>
+          <label for="amt">Amount</label>
+          <input id="amt" placeholder="e.g. 1 1/2 or ¾"/>
+        </div>
+        <div>
+          <label for="unit">Unit</label>
+          <select id="unit"></select>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="muted">Morton salt version • Grams per cup data</div>
+        <button class="btn" id="convertBtn">Convert</button>
+        <div class="muted right">Output in grams</div>
+      </div>
+
+      <div class="result">
+        <div class="mono" id="out" style="font-size:clamp(22px,3vw,28px);font-weight:800">—</div>
+        <div class="muted" id="notes">Enter ingredient, amount, and unit to see result.</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const U={tsp:{k:'vol',toCups:1/48},tbsp:{k:'vol',toCups:1/16},floz:{k:'vol',toCups:1/8},cup:{k:'vol',toCups:1},pint:{k:'vol',toCups:2},quart:{k:'vol',toCups:4},gallon:{k:'vol',toCups:16},ml:{k:'vol',toCups:(1/236.588)},l:{k:'vol',toCups:(1000/236.588)},g:{k:'wt',toG:v=>v},kg:{k:'wt',toG:v=>v*1000},oz:{k:'wt',toG:v=>v*28.349523125},lb:{k:'wt',toG:v=>v*453.59237}};
+const V={'¼':.25,'½':.5,'¾':.75,'⅐':1/7,'⅑':1/9,'⅒':.1,'⅓':1/3,'⅔':2/3,'⅕':.2,'⅖':.4,'⅗':.6,'⅘':.8,'⅙':1/6,'⅚':5/6,'⅛':.125,'⅜':.375,'⅝':.625,'⅞':.875};
+function parseAmount(r){if(!r)return NaN;let s=r.trim();for(const k in V)if(s.includes(k))s=s.replaceAll(k,' '+V[k]);let t=0;for(const p of s.split(/\s+/)){if(/^[-+]?\d+(?:[.,]\d+)?$/.test(p))t+=parseFloat(p.replace(',', '.'));else if(/^[-+]?\d+\s*\/\s*\d+$/.test(p)){const[a,b]=p.split('/').map(Number);if(b)t+=a/b}else return NaN;}return t;}
+
+let DATA={
+  "All-Purpose Flour":120,"Almond Flour":96,"Coconut Flour":128,"Granulated Sugar":198,"Brown Sugar":213,"Confectioners' Sugar":113,
+  "Cocoa Powder":84,"Baking Powder":192,"Baking Soda":288,"Salt":288,"Butter":227,"Milk":227,"Water":227,"Honey":336,
+  "Corn Syrup":312,"Maple Syrup":312,"Vegetable Oil":198,"Chocolate Chips":170,"Oats":85,"Peanut Butter":270,"Applesauce":255,
+  "Bananas (mashed)":227,"Blueberries":155,"Raisins":156,"Cream Cheese":227,"Heavy Cream":227,"Sourdough Starter":227
+};
+
+const ingSearch=document.getElementById('ingSearch'),ingList=document.getElementById('inglist'),ingSelect=document.getElementById('ingSelect'),amt=document.getElementById('amt'),unit=document.getElementById('unit'),out=document.getElementById('out'),notes=document.getElementById('notes'),convertBtn=document.getElementById('convertBtn');
+
+Object.keys(DATA).sort().forEach(k=>{const o=document.createElement('option');o.value=k;ingList.appendChild(o);const s=document.createElement('option');s.value=k;s.textContent=k;ingSelect.appendChild(s)});
+Object.keys(U).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;unit.appendChild(o)});
+unit.value='cup';ingSelect.value='All-Purpose Flour';
+
+function conv(){const n=ingSelect.value,a=parseAmount(amt.value),u=unit.value;if(!n||!isFinite(a)){out.textContent='—';return;}const meta=U[u];let g;if(meta.k==='wt'){g=meta.toG(a);}else{const cups=a*meta.toCups;g=cups*DATA[n];}out.textContent=`${Math.round(g)} g`;notes.textContent=`${a} ${u} ${n} ≈ ${Math.round(g)} g`}
+convertBtn.onclick=conv;
+</script>
+</body>
+</html>
