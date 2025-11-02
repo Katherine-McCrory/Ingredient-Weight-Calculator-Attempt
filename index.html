@@ -21,14 +21,13 @@
   .result{margin-top:14px;padding:14px;border-radius:14px;background:rgba(2,6,23,.55);border:1px solid rgba(255,255,255,.06)}
   .muted{color:#94a3b8;font-size:12px;text-align:center}
   .mono{font-variant-numeric:tabular-nums;text-align:center}
-  /* custom searchable dropdown */
+  /* searchable select-like ingredient control */
   .field{position:relative}
-  .combo{display:flex;gap:6px}
-  .drop{width:48px;flex:0 0 48px;border-radius:12px;cursor:pointer}
+  .ing-input{appearance:none;-webkit-appearance:none;}
   .sug{position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#0f172a;border:1px solid rgba(255,255,255,.1);border-radius:12px;box-shadow:0 10px 20px rgba(0,0,0,.35);max-height:240px;overflow:auto;display:none;z-index:20;text-align:left}
   .sug.show{display:block}
   .sug .item{padding:8px 10px;cursor:pointer}
-  .sug .item:hover{background:rgba(255,255,255,.06)}
+  .sug .item:hover,.sug .item.active{background:rgba(255,255,255,.06)}
 </style>
 <body>
   <div class="wrap">
@@ -38,10 +37,7 @@
       <div class="grid" aria-label="converter">
         <div class="field">
           <label for="ing">Ingredient</label>
-          <div class="combo">
-            <input id="ing" placeholder="Type to search…" autocomplete="off">
-            <button id="drop" class="drop" title="Show all" aria-label="Show ingredient list">▾</button>
-          </div>
+          <input id="ing" class="ing-input" placeholder="Search or choose…" autocomplete="off" role="combobox" aria-expanded="false" aria-owns="sug" aria-autocomplete="list">
           <div id="sug" class="sug" role="listbox" aria-label="Ingredient suggestions"></div>
         </div>
         <div>
@@ -96,19 +92,18 @@ let DATA={
   "Salt":288,"Baking Powder":192,"Baking Soda":288
 };
 
-const ing=document.getElementById('ing'),sug=document.getElementById('sug'),drop=document.getElementById('drop'),amt=document.getElementById('amt'),unit=document.getElementById('unit'),out=document.getElementById('out'),notes=document.getElementById('notes'),convertBtn=document.getElementById('convertBtn');
+const ing=document.getElementById('ing'),sug=document.getElementById('sug'),amt=document.getElementById('amt'),unit=document.getElementById('unit'),out=document.getElementById('out'),notes=document.getElementById('notes'),convertBtn=document.getElementById('convertBtn');
 
 Object.keys(U).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;unit.appendChild(o)});
 
 const ITEMS=Object.keys(DATA).sort((a,b)=>a.localeCompare(b));
-function renderList(q=''){sug.innerHTML='';const needle=q.trim().toLowerCase();let shown=0;for(const name of ITEMS){if(needle && !name.toLowerCase().includes(needle)) continue;const d=document.createElement('div');d.className='item';d.textContent=name;d.onclick=()=>{ing.value=name;hideList();};sug.appendChild(d);shown++;if(shown>=120) break;}sug.classList.toggle('show',shown>0)}
-function showList(){renderList(ing.value);sug.classList.add('show')}
-function hideList(){sug.classList.remove('show')}
+function renderList(q=''){sug.innerHTML='';const needle=q.trim().toLowerCase();let shown=0;for(const name of ITEMS){if(needle && !name.toLowerCase().includes(needle)) continue;const d=document.createElement('div');d.className='item';d.textContent=name;d.onclick=()=>{ing.value=name;hideList();};sug.appendChild(d);shown++;if(shown>=200) break;}sug.classList.toggle('show',shown>0);ing.setAttribute('aria-expanded',shown>0)}
+function showList(){renderList(ing.value);}
+function hideList(){sug.classList.remove('show');ing.setAttribute('aria-expanded','false')}
 
 ing.addEventListener('input',()=>showList());
 ing.addEventListener('focus',()=>showList());
 ing.addEventListener('blur',()=>setTimeout(hideList,150));
-drop.addEventListener('click',()=>{if(sug.classList.contains('show')) hideList(); else {ing.focus(); renderList('');}});
 
 function findIngredient(name){ if(DATA[name]) return name; const low=name.toLowerCase(); const hit=ITEMS.find(k=>k.toLowerCase()===low)||ITEMS.find(k=>k.toLowerCase().startsWith(low)); return hit||''; }
 
